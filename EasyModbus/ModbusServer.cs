@@ -310,7 +310,7 @@ namespace EasyModbus
         private int baudrate = 9600;
         private System.IO.Ports.Parity parity = Parity.Even;
         private System.IO.Ports.StopBits stopBits = StopBits.One;
-        private string serialPort = "COM1";
+        private string serialPortName = "COM1";
         private SerialPort serialport;
         private byte unitIdentifier = 1;
         private int portIn;
@@ -412,9 +412,9 @@ namespace EasyModbus
             {
                 if (serialport == null)
                 {
-                    if (debug) StoreLogData.Instance.Store("EasyModbus RTU-Server listing for incomming data at Serial Port " + serialPort, System.DateTime.Now);
+                    if (debug) StoreLogData.Instance.Store("EasyModbus RTU-Server listing for incomming data at Serial Port " + serialPortName, System.DateTime.Now);
                     serialport = new SerialPort();
-                    serialport.PortName = serialPort;
+                    serialport.PortName = serialPortName;
                     serialport.BaudRate = this.baudrate;
                     serialport.Parity = this.parity;
                     serialport.StopBits = stopBits;
@@ -2127,12 +2127,12 @@ namespace EasyModbus
         {
             get
             {
-                return serialPort;
+                return serialPortName;
             }
             set
             {
-                serialPort = value;
-                if (serialPort != null)
+                serialPortName = value;
+                if (serialPortName != null)
                     serialFlag = true;
                 else
                     serialFlag = false;
