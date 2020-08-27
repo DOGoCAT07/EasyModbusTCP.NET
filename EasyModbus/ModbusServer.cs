@@ -2155,7 +2155,7 @@ namespace EasyModbus
 
     public class HoldingRegisters
     {
-        public Int16[] localArray = new Int16[65535];
+        public Int16[] localArray = new Int16[65536];
         ModbusServer modbusServer;
      
         public HoldingRegisters(EasyModbus.ModbusServer modbusServer)
@@ -2176,7 +2176,7 @@ namespace EasyModbus
 
     public class InputRegisters
     {
-        public Int16[] localArray = new Int16[65535];
+        public Int16[] localArray = new Int16[65536];
         ModbusServer modbusServer;
 
         public InputRegisters(EasyModbus.ModbusServer modbusServer)
@@ -2197,7 +2197,7 @@ namespace EasyModbus
 
     public class Coils
     {
-        public bool[] localArray = new bool[65535];
+        public bool[] localArray = new bool[65536];
         ModbusServer modbusServer;
 
         public Coils(EasyModbus.ModbusServer modbusServer)
@@ -2218,7 +2218,7 @@ namespace EasyModbus
 
     public class DiscreteInputs
     {
-        public bool[] localArray = new bool[65535];
+        public bool[] localArray = new bool[65536];
         ModbusServer modbusServer;
 
         public DiscreteInputs(EasyModbus.ModbusServer modbusServer)
