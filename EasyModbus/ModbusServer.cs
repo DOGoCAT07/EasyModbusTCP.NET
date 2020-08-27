@@ -49,10 +49,27 @@ namespace EasyModbus
         public byte unitIdentifier;
         public byte functionCode;
         public UInt16 startingAdress;
+
+        /// <summary>
+        /// Starting read register, only for function code 23
+        /// </summary>
         public UInt16 startingAddressRead;
+
+        /// <summary>
+        /// Starting write register, only for function code 23
+        /// </summary>
         public UInt16 startingAddressWrite;
+
         public UInt16 quantity;
+
+        /// <summary>
+        /// Quantity read registers, only for function code 23
+        /// </summary>
         public UInt16 quantityRead;
+
+        /// <summary>
+        /// Quantity write registers, only for function code 23
+        /// </summary>
         public UInt16 quantityWrite;
         public byte byteCount;
         public byte exceptionCode;
@@ -61,6 +78,12 @@ namespace EasyModbus
         public UInt16[] receiveRegisterValues;
         public Int16[] sendRegisterValues;
         public bool[] sendCoilValues;    
+        
+
+        //TODO crc не анализируется у входных данных
+        /// <summary>
+        /// Uses only for SendData
+        /// </summary>
         public UInt16 crc;
     }
 #endregion
@@ -362,7 +385,7 @@ namespace EasyModbus
             listenerThread.Join();
             try
             {
-
+                //TODO wtf
                 clientConnectionThread.Abort();
             }
             catch (Exception) { }
