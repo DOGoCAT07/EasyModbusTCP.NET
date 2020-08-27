@@ -296,10 +296,6 @@ namespace EasyModbus
     {
         private bool debug = false;
         Int32 port = 502;
-        ModbusProtocol receiveData;
-        ModbusProtocol sendData =  new ModbusProtocol();
-        Byte[] bytes = new Byte[2100];
-        //public Int16[] _holdingRegisters = new Int16[65535];
         public HoldingRegisters holdingRegisters;      
         public InputRegisters inputRegisters;
         public Coils coils;
@@ -313,8 +309,6 @@ namespace EasyModbus
         private string serialPortName = "COM1";
         private SerialPort serialport;
         private byte unitIdentifier = 1;
-        private int portIn;
-        private IPAddress ipAddressIn;
         private UdpClient udpClient;
         private IPEndPoint iPEndPoint;
         private TCPHandler tcpHandler;
@@ -441,13 +435,10 @@ namespace EasyModbus
                         tcpHandler.Disconnect();
                     try
                     {                       
-                        bytes = udpClient.Receive(ref iPEndPoint);
-                        portIn = iPEndPoint.Port;
                         NetworkConnectionParameter networkConnectionParameter = new NetworkConnectionParameter();
-                        networkConnectionParameter.bytes = bytes;
-                        ipAddressIn = iPEndPoint.Address;
-                        networkConnectionParameter.portIn = portIn;
-                        networkConnectionParameter.ipAddressIn = ipAddressIn;
+                        networkConnectionParameter.bytes = udpClient.Receive(ref iPEndPoint);
+                        networkConnectionParameter.portIn = iPEndPoint.Port;
+                        networkConnectionParameter.ipAddressIn = iPEndPoint.Address;
                         ParameterizedThreadStart pts = new ParameterizedThreadStart(this.ProcessReceivedData);
                         Thread processDataThread = new Thread(pts);
                         processDataThread.Start(networkConnectionParameter);
