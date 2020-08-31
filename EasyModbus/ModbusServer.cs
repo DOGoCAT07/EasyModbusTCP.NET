@@ -96,28 +96,40 @@ namespace EasyModbus
         public int portIn;                  //For UDP-Connection only
         public IPAddress ipAddressIn;       //For UDP-Connection only
     }
-#endregion
+    #endregion
 
-#region TCPHandler class
+    #region TCPHandler class
     internal class TCPHandler
     {
         public delegate void DataChanged(object networkConnectionParameter);
         public event DataChanged dataChanged;
 
-        public delegate void NumberOfClientsChanged();
-        public event NumberOfClientsChanged numberOfClientsChanged;
+        public delegate void ConnectedClientsChanged();
+        public event ConnectedClientsChanged connectedClientsChanged;
 
         TcpListener server = null;
-        
 
-        private List<Client> tcpClientLastRequestList = new List<Client>();
 
-        public int NumberOfConnectedClients { get; set; }
+        private List<Client> ClientList = new List<Client>();
+
+        public List<IPEndPoint> RemoteEndPoints
+        {
+            get
+            {
+                List<IPEndPoint> list = new List<IPEndPoint>();
+                foreach (Client clientLoop in ClientList)
+                {
+                    list.Add((IPEndPoint)clientLoop.TcpClient.Client.RemoteEndPoint);
+                }
+                return list;
+            }
+        }
 
         public string ipAddress = null;
 
         public TCPHandler(int port)
         {
+
             IPAddress localAddr = IPAddress.Any;
             server = new TcpListener(localAddr, port);
             server.Start();
@@ -157,57 +169,40 @@ namespace EasyModbus
             {
                 server.BeginAcceptTcpClient(AcceptTcpClientCallback, null);
                 Client client = new Client(tcpClient);
+                client.connectionClosed += Client_connectionClosed;
+
                 NetworkStream networkStream = client.NetworkStream;
                 networkStream.ReadTimeout = 4000;
                 networkStream.BeginRead(client.Buffer, 0, client.Buffer.Length, ReadCallback, client);
+
+                ClientList.Add(client);
+                if (connectedClientsChanged != null)
+                    connectedClientsChanged();
             }
             catch (Exception) { }
         }
 
-        private int GetAndCleanNumberOfConnectedClients(Client client)
+        private void Client_connectionClosed(Client client)
         {
-            lock (this)
-            {
-                int i = 0;
-                bool objetExists = false;
-                foreach (Client clientLoop in tcpClientLastRequestList)
-                {
-                    if (client.Equals(clientLoop))
-                        objetExists = true;
-                }
-                try
-                {
-                    tcpClientLastRequestList.RemoveAll(delegate (Client c)
-                        {
-                            return ((DateTime.Now.Ticks - c.Ticks) > 40000000);
-                        }
-
-                        );
-                }
-                catch (Exception) { }
-                if (!objetExists)
-                    tcpClientLastRequestList.Add(client);
-
-
-                return tcpClientLastRequestList.Count;
-            }
+            ClientList.Remove(client);
+            if (connectedClientsChanged != null)
+                connectedClientsChanged();
         }
 
         private void ReadCallback(IAsyncResult asyncResult)
         {
             NetworkConnectionParameter networkConnectionParameter = new NetworkConnectionParameter();
             Client client = asyncResult.AsyncState as Client;
-            client.Ticks = DateTime.Now.Ticks;
-            NumberOfConnectedClients = GetAndCleanNumberOfConnectedClients(client);
-            if (numberOfClientsChanged != null)
-                numberOfClientsChanged();
+
             if (client != null)
             {
                 int read;
                 NetworkStream networkStream = null;
+                client.UpdateTimer();
+
                 try
                 {
-                networkStream = client.NetworkStream;
+                    networkStream = client.NetworkStream;
 
                     read = networkStream.EndRead(asyncResult);
                 }
@@ -216,11 +211,12 @@ namespace EasyModbus
                     return;
                 }
 
-
                 if (read == 0)
                 {
-                    //OnClientDisconnected(client.TcpClient);
-                    //connectedClients.Remove(client);
+                    client.Close();
+                    ClientList.Remove(client);
+                    if (connectedClientsChanged != null)
+                        connectedClientsChanged();
                     return;
                 }
                 byte[] data = new byte[read];
@@ -243,14 +239,14 @@ namespace EasyModbus
         {
             try
             {
-                foreach (Client clientLoop in tcpClientLastRequestList)
+                foreach (Client clientLoop in ClientList)
                 {
-                    clientLoop.NetworkStream.Close(00);
+                    clientLoop.Close();
                 }
             }
             catch (Exception) { }
             server.Stop();
-            
+
         }
 
 
@@ -258,13 +254,55 @@ namespace EasyModbus
         {
             private readonly TcpClient tcpClient;
             private readonly byte[] buffer;
-            public long Ticks { get; set; }
+            private System.Timers.Timer timer;
+
+            public delegate void ConnectionClosed(Client client);
+            public event ConnectionClosed connectionClosed;
+
+            public void UpdateTimer()
+            {
+                timer.Stop();
+                timer.Start();
+            }
+
+            public bool Closed
+            {
+                get { return !tcpClient.Connected;  }
+            }
+
+            private TimeSpan liveTime = new TimeSpan(0,0,4);
+            public TimeSpan LiveTime
+            {
+                set
+                {
+                    liveTime = value;
+                    timer.Stop();
+                    timer.Interval = liveTime.TotalMilliseconds;
+                    timer.Start();
+                }
+            }
 
             public Client(TcpClient tcpClient)
             {
                 this.tcpClient = tcpClient;
                 int bufferSize = tcpClient.ReceiveBufferSize;
                 buffer = new byte[bufferSize];
+                this.timer = new System.Timers.Timer(liveTime.TotalMilliseconds);
+                this.timer.Elapsed += Timer_Elapsed;
+                this.timer.Start();
+            }
+
+            private void Timer_Elapsed(object sender, System.Timers.ElapsedEventArgs e)
+            {
+                if (connectionClosed != null)
+                    connectionClosed(this);
+                Close();
+            }
+
+            public void Close()
+            {
+                timer.Dispose();
+                tcpClient.Close();
             }
 
             public TcpClient TcpClient
@@ -279,16 +317,16 @@ namespace EasyModbus
 
             public NetworkStream NetworkStream
             {
-                get {
-                    
-                        return tcpClient.GetStream();
-
+                get
+                {
+                    return tcpClient.GetStream();
                 }
             }
+
         }
     }
-#endregion
-    
+    #endregion
+
     /// <summary>
     /// Modbus TCP Server.
     /// </summary>
@@ -300,7 +338,6 @@ namespace EasyModbus
         public InputRegisters inputRegisters;
         public Coils coils;
         public DiscreteInputs discreteInputs;
-        private int numberOfConnections = 0;
         private bool udpFlag;
         private bool serialFlag;
         private int baudrate = 9600;
@@ -328,8 +365,8 @@ namespace EasyModbus
         object lockCoils = new object();
         object lockHoldingRegisters = new object();
         private volatile bool shouldStop;
-        
 
+        public List<IPEndPoint> RemoteEndPoints { get => tcpHandler.RemoteEndPoints; }
 
         public ModbusServer()
         {
@@ -347,8 +384,8 @@ namespace EasyModbus
         public delegate void HoldingRegistersChangedHandler(int register, int numberOfRegisters);
         public event HoldingRegistersChangedHandler HoldingRegistersChanged;
 
-        public delegate void NumberOfConnectedClientsChangedHandler();
-        public event NumberOfConnectedClientsChangedHandler NumberOfConnectedClientsChanged;
+        public delegate void ConnectedClientsChangedHandler();
+        public event ConnectedClientsChangedHandler ConnectedClientsChanged;
 
         public delegate void LogDataChangedHandler();
         public event LogDataChangedHandler LogDataChanged;
@@ -373,7 +410,6 @@ namespace EasyModbus
             {
                 tcpHandler.Disconnect();
                 listenerThread.Abort();
-                
             }
             catch (Exception) { }
             listenerThread.Join();
@@ -400,7 +436,7 @@ namespace EasyModbus
                 tcpHandler = new TCPHandler(port);
                 if (debug) StoreLogData.Instance.Store("EasyModbus Server listing for incomming data at Port " + port, System.DateTime.Now);
                 tcpHandler.dataChanged += new TCPHandler.DataChanged(ProcessReceivedData);
-                tcpHandler.numberOfClientsChanged += new TCPHandler.NumberOfClientsChanged(numberOfClientsChanged);
+                tcpHandler.connectedClientsChanged += new TCPHandler.ConnectedClientsChanged(connectedClientsChanged);
             }
             else if (serialFlag)
             {
@@ -444,8 +480,8 @@ namespace EasyModbus
                         processDataThread.Start(networkConnectionParameter);
                     }
                     catch (Exception)
-                    {                       
-                    }    
+                    {
+                    }
             	}
 
                 }
@@ -493,12 +529,11 @@ namespace EasyModbus
         }
 		#endregion
  
-		#region Method numberOfClientsChanged
-        private void numberOfClientsChanged()
+		#region Method connectedClientsChanged
+        private void connectedClientsChanged()
         {
-            numberOfConnections = tcpHandler.NumberOfConnectedClients;
-            if (NumberOfConnectedClientsChanged != null)
-                NumberOfConnectedClientsChanged();
+            if (ConnectedClientsChanged != null)
+                ConnectedClientsChanged();
         }
         #endregion
 
@@ -2028,7 +2063,7 @@ namespace EasyModbus
         {
             get
             {
-                return numberOfConnections;
+                return RemoteEndPoints.Count;
             }
         }
 
@@ -2164,10 +2199,9 @@ namespace EasyModbus
             }
         }
 
+        public IPEndPoint IPEndPointLocal { get => iPEndPoint; }
 
-
-
-    public class HoldingRegisters
+        public class HoldingRegisters
     {
         public Int16[] localArray = new Int16[65536];
         ModbusServer modbusServer;
