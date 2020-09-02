@@ -840,7 +840,7 @@ namespace EasyModbus
                 sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
                 sendData.exceptionCode = 3;
             }
-            if (((receiveData.startingAdress + 1 + receiveData.quantity) > 65535) | (receiveData.startingAdress < 0))     //Invalid Starting adress or Starting address + quantity
+            if ((receiveData.startingAdress + receiveData.quantity) > 65536)     //Invalid Starting adress or Starting address + quantity
             {
                 sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
                 sendData.exceptionCode = 2;
@@ -854,7 +854,7 @@ namespace EasyModbus
 
                 sendData.sendCoilValues = new bool[receiveData.quantity];
                 lock (lockCoils)
-                    Array.Copy(coils.localArray, receiveData.startingAdress + 1, sendData.sendCoilValues, 0, receiveData.quantity);
+                    Array.Copy(coils.localArray, receiveData.startingAdress, sendData.sendCoilValues, 0, receiveData.quantity);
             }
             if (true)
             {
@@ -968,7 +968,7 @@ namespace EasyModbus
                 sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
                 sendData.exceptionCode = 3;
             }
-            if (((receiveData.startingAdress + 1 + receiveData.quantity) > 65535) | (receiveData.startingAdress < 0))   //Invalid Starting adress or Starting address + quantity
+            if ((receiveData.startingAdress + receiveData.quantity) > 65536)   //Invalid Starting adress or Starting address + quantity
             {
                 sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
                 sendData.exceptionCode = 2;
@@ -981,7 +981,7 @@ namespace EasyModbus
                     sendData.byteCount = (byte)(receiveData.quantity / 8 + 1);
 
                 sendData.sendCoilValues = new bool[receiveData.quantity];
-                Array.Copy(discreteInputs.localArray, receiveData.startingAdress + 1, sendData.sendCoilValues, 0, receiveData.quantity);
+                Array.Copy(discreteInputs.localArray, receiveData.startingAdress, sendData.sendCoilValues, 0, receiveData.quantity);
             }
             if (true)
             {
@@ -1094,7 +1094,7 @@ namespace EasyModbus
                 sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
                 sendData.exceptionCode = 3;
             }
-            if (((receiveData.startingAdress + 1 + receiveData.quantity) > 65535)  | (receiveData.startingAdress < 0))   //Invalid Starting adress or Starting address + quantity
+            if ((receiveData.startingAdress + receiveData.quantity) > 65536)   //Invalid Starting adress or Starting address + quantity
             {
                 sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
                 sendData.exceptionCode = 2;
@@ -1104,7 +1104,7 @@ namespace EasyModbus
                 sendData.byteCount = (byte)(2 * receiveData.quantity);
                 sendData.sendRegisterValues = new Int16[receiveData.quantity];
                 lock (lockHoldingRegisters)
-                    Buffer.BlockCopy(holdingRegisters.localArray, receiveData.startingAdress * 2 + 2, sendData.sendRegisterValues, 0, receiveData.quantity * 2);
+                    Buffer.BlockCopy(holdingRegisters.localArray, receiveData.startingAdress * 2, sendData.sendRegisterValues, 0, receiveData.quantity * 2);
             }
                 if (sendData.exceptionCode > 0)
                     sendData.length = 0x03;
@@ -1210,7 +1210,7 @@ namespace EasyModbus
                 sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
                 sendData.exceptionCode = 3;
             }
-            if (((receiveData.startingAdress + 1 + receiveData.quantity) > 65535)  | (receiveData.startingAdress < 0))   //Invalid Starting adress or Starting address + quantity
+            if ((receiveData.startingAdress + receiveData.quantity) > 65536)   //Invalid Starting adress or Starting address + quantity
             {
                 sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
                 sendData.exceptionCode = 2;
@@ -1219,7 +1219,7 @@ namespace EasyModbus
             {
                 sendData.byteCount = (byte)(2 * receiveData.quantity);
                 sendData.sendRegisterValues = new Int16[receiveData.quantity];
-                Buffer.BlockCopy(inputRegisters.localArray, receiveData.startingAdress * 2 + 2, sendData.sendRegisterValues, 0, receiveData.quantity * 2);
+                Buffer.BlockCopy(inputRegisters.localArray, receiveData.startingAdress * 2, sendData.sendRegisterValues, 0, receiveData.quantity * 2);
             }
                 if (sendData.exceptionCode > 0)
                     sendData.length = 0x03;
@@ -1339,12 +1339,12 @@ namespace EasyModbus
                 if (receiveData.receiveCoilValues[0] == 0xFF00)
                 {
                     lock (lockCoils)
-                        coils[receiveData.startingAdress + 1] = true;
+                        coils[receiveData.startingAdress] = true;
                 }
                 if (receiveData.receiveCoilValues[0] == 0x0000)
                 {
                     lock (lockCoils)
-                        coils[receiveData.startingAdress + 1] = false;
+                        coils[receiveData.startingAdress] = false;
                 }
             }
                 if (sendData.exceptionCode > 0)
@@ -1467,7 +1467,7 @@ namespace EasyModbus
             if (sendData.exceptionCode == 0)
             {
                 lock (lockHoldingRegisters)
-                    holdingRegisters[receiveData.startingAdress + 1] = unchecked((short)receiveData.receiveRegisterValues[0]);
+                    holdingRegisters[receiveData.startingAdress] = unchecked((short)receiveData.receiveRegisterValues[0]);
             }
                 if (sendData.exceptionCode > 0)
                     sendData.length = 0x03;
@@ -1582,7 +1582,7 @@ namespace EasyModbus
                 sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
                 sendData.exceptionCode = 3;
             }
-            if ((((int)receiveData.startingAdress + 1 + (int)receiveData.quantity) > 65535)  | (receiveData.startingAdress < 0))    //Invalid Starting adress or Starting address + quantity
+            if (((int)receiveData.startingAdress + (int)receiveData.quantity) > 65536)    //Invalid Starting adress or Starting address + quantity
             {
                 sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
                 sendData.exceptionCode = 2;
@@ -1593,21 +1593,14 @@ namespace EasyModbus
                     for (int i = 0; i < receiveData.quantity; i++)
                     {
                         int shift = i % 16;
-                    /*                if ((i == receiveData.quantity - 1) & (receiveData.quantity % 2 != 0))
-                                    {
-                                        if (shift < 8)
-                                            shift = shift + 8;
-                                        else
-                                            shift = shift - 8;
-                                    }*/
                         int mask = 0x1;
                         mask = mask << (shift);
                         if ((receiveData.receiveCoilValues[i / 16] & (ushort)mask) == 0)
                         
-                            coils[receiveData.startingAdress + i + 1] = false;
+                            coils[receiveData.startingAdress + i] = false;
                         else
                         
-                            coils[receiveData.startingAdress + i + 1] = true;
+                            coils[receiveData.startingAdress + i] = true;
 
                     }
             }
@@ -1722,7 +1715,7 @@ namespace EasyModbus
                 sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
                 sendData.exceptionCode = 3;
             }
-            if ((((int)receiveData.startingAdress + 1 + (int)receiveData.quantity) > 65535)  | (receiveData.startingAdress < 0))   //Invalid Starting adress or Starting address + quantity
+            if (((int)receiveData.startingAdress + (int)receiveData.quantity) > 65536)   //Invalid Starting adress or Starting address + quantity
             {
                 sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
                 sendData.exceptionCode = 2;
@@ -1732,7 +1725,7 @@ namespace EasyModbus
                 lock (lockHoldingRegisters)
                     for (int i = 0; i < receiveData.quantity; i++)
                     {
-                        holdingRegisters[receiveData.startingAdress + i + 1] = unchecked((short)receiveData.receiveRegisterValues[i]);
+                        holdingRegisters[receiveData.startingAdress + i] = unchecked((short)receiveData.receiveRegisterValues[i]);
                     }
             }
             if (sendData.exceptionCode > 0)
@@ -1845,7 +1838,7 @@ namespace EasyModbus
                 sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
                 sendData.exceptionCode = 3;
             }
-            if ((((int)receiveData.startingAddressRead + 1 + (int)receiveData.quantityRead) > 65535) | (((int)receiveData.startingAddressWrite + 1 + (int)receiveData.quantityWrite) > 65535) | (receiveData.quantityWrite < 0) | (receiveData.quantityRead < 0))    //Invalid Starting adress or Starting address + quantity
+            if ((((int)receiveData.startingAddressRead + (int)receiveData.quantityRead) > 65536) | (((int)receiveData.startingAddressWrite + (int)receiveData.quantityWrite) > 65536))    //Invalid Starting adress or Starting address + quantity
             {
                 sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
                 sendData.exceptionCode = 2;
@@ -1854,12 +1847,12 @@ namespace EasyModbus
             {
                 sendData.sendRegisterValues = new Int16[receiveData.quantityRead];
                 lock (lockHoldingRegisters)
-                    Buffer.BlockCopy(holdingRegisters.localArray, receiveData.startingAddressRead * 2 + 2, sendData.sendRegisterValues, 0, receiveData.quantityRead * 2);
+                    Buffer.BlockCopy(holdingRegisters.localArray, receiveData.startingAddressRead * 2, sendData.sendRegisterValues, 0, receiveData.quantityRead * 2);
 
                 lock (holdingRegisters)
                     for (int i = 0; i < receiveData.quantityWrite; i++)
                     {
-                        holdingRegisters[receiveData.startingAddressWrite + i + 1] = unchecked((short)receiveData.receiveRegisterValues[i]);
+                        holdingRegisters[receiveData.startingAddressWrite + i] = unchecked((short)receiveData.receiveRegisterValues[i]);
                     }
                 sendData.byteCount = (byte)(2 * receiveData.quantityRead);
             }
