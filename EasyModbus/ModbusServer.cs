@@ -835,7 +835,7 @@ namespace EasyModbus
 
             sendData.unitIdentifier = this.unitIdentifier;
             sendData.functionCode = receiveData.functionCode;
-            if ((receiveData.quantity < 1) | (receiveData.quantity > 0x07D0))  //Invalid quantity
+            if (receiveData.quantity > 2000)  //Invalid quantity
             {
                 sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
                 sendData.exceptionCode = 3;
@@ -963,7 +963,7 @@ namespace EasyModbus
 
             sendData.unitIdentifier = this.unitIdentifier;
             sendData.functionCode = receiveData.functionCode;
-            if ((receiveData.quantity < 1) | (receiveData.quantity > 0x07D0))  //Invalid quantity
+            if (receiveData.quantity > 2000)  //Invalid quantity
             {
                 sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
                 sendData.exceptionCode = 3;
@@ -1089,7 +1089,7 @@ namespace EasyModbus
 
             sendData.unitIdentifier = this.unitIdentifier;
             sendData.functionCode = receiveData.functionCode;
-            if ((receiveData.quantity < 1) | (receiveData.quantity > 0x007D))  //Invalid quantity
+            if (receiveData.quantity > 125)  //Invalid quantity
             {
                 sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
                 sendData.exceptionCode = 3;
@@ -1205,7 +1205,7 @@ namespace EasyModbus
 
             sendData.unitIdentifier = this.unitIdentifier;
             sendData.functionCode = receiveData.functionCode;
-            if ((receiveData.quantity < 1) | (receiveData.quantity > 0x007D))  //Invalid quantity
+            if (receiveData.quantity > 125)  //Invalid quantity
             {
                 sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
                 sendData.exceptionCode = 3;
@@ -1577,7 +1577,7 @@ namespace EasyModbus
             sendData.startingAdress = receiveData.startingAdress;
             sendData.quantity = receiveData.quantity;
             
-            if ((receiveData.quantity == 0x0000) | (receiveData.quantity > 0x07B0))  //Invalid Quantity
+            if ((receiveData.quantity == 0) | (receiveData.quantity > 1968))  //Invalid Quantity
             {
                 sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
                 sendData.exceptionCode = 3;
@@ -1717,7 +1717,7 @@ namespace EasyModbus
             sendData.startingAdress = receiveData.startingAdress;
             sendData.quantity = receiveData.quantity;
 
-            if ((receiveData.quantity == 0x0000) | (receiveData.quantity > 0x07B0))  //Invalid Quantity
+            if ((receiveData.quantity == 0) | (receiveData.quantity > 123))  //Invalid Quantity
             {
                 sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
                 sendData.exceptionCode = 3;
@@ -1840,7 +1840,7 @@ namespace EasyModbus
             sendData.functionCode = receiveData.functionCode;
 
 
-            if ((receiveData.quantityRead < 0x0001) | (receiveData.quantityRead > 0x007D) | (receiveData.quantityWrite < 0x0001) | (receiveData.quantityWrite > 0x0079) | (receiveData.byteCount != (receiveData.quantityWrite * 2)))  //Invalid Quantity
+            if ((receiveData.quantityRead == 0) | (receiveData.quantityRead > 125) | (receiveData.quantityWrite == 0) | (receiveData.quantityWrite > 121) | (receiveData.byteCount != (receiveData.quantityWrite * 2)))  //Invalid Quantity
             {
                 sendData.errorCode = (byte)(receiveData.functionCode + 0x80);
                 sendData.exceptionCode = 3;
