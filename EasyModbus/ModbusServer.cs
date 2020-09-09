@@ -1438,7 +1438,7 @@ namespace EasyModbus
                 }
                 catch (Exception) { }
                 if (CoilsChanged != null)
-                    CoilsChanged(receiveData.startingAdress+1, 1);
+                    CoilsChanged(receiveData.startingAdress, 1);
             }
         }
 
@@ -1561,7 +1561,7 @@ namespace EasyModbus
                 }
                 catch (Exception) { }
                 if (HoldingRegistersChanged != null)
-                    HoldingRegistersChanged(receiveData.startingAdress+1, 1);
+                    HoldingRegistersChanged(receiveData.startingAdress, 1);
             }
         }
 
@@ -1694,7 +1694,7 @@ namespace EasyModbus
                 }
                 catch (Exception) { }
                 if (CoilsChanged != null)
-                    CoilsChanged(receiveData.startingAdress+1, receiveData.quantity);
+                    CoilsChanged(receiveData.startingAdress, receiveData.quantity);
             }
         }
 
@@ -1818,7 +1818,7 @@ namespace EasyModbus
                     }
                 catch (Exception) { }
                 if (HoldingRegistersChanged != null)
-                    HoldingRegistersChanged(receiveData.startingAdress+1, receiveData.quantity);
+                    HoldingRegistersChanged(receiveData.startingAdress, receiveData.quantity);
             }
         }
 
@@ -1949,7 +1949,7 @@ namespace EasyModbus
                 }
                 catch (Exception) { }
                 if (HoldingRegistersChanged != null)
-                    HoldingRegistersChanged(receiveData.startingAddressWrite+1, receiveData.quantityWrite);
+                    HoldingRegistersChanged(receiveData.startingAddressWrite, receiveData.quantityWrite);
             }
         }
 
